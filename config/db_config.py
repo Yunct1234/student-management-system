@@ -3,12 +3,31 @@
 """
 import os
 from dotenv import load_dotenv
+from typing import Dict, Any
 
 load_dotenv()
 
 class DBConfig:
     """数据库配置类"""
     
+    @staticmethod
+    def get_local_config() -> Dict[str, Any]:
+        """
+        获取本地数据库配置
+        
+        Returns:
+            本地数据库连接配置字典
+        """
+        return {
+            'host': os.getenv('DB_LOCAL_HOST', '127.0.0.1'),  # 改为127.0.0.1
+            'port': int(os.getenv('DB_LOCAL_PORT', '2881')),
+            'user': os.getenv('DB_LOCAL_USER', 'root'),  # 改为root（去掉@sys）
+            'password': os.getenv('DB_LOCAL_PASSWORD', ''),  # 默认密码为空
+            'database': os.getenv('DB_LOCAL_DATABASE', 'student_management'),
+            'charset': 'utf8mb4',
+            'autocommit': True
+        }
+
     # OceanBase 默认配置
     DEFAULT_HOST = 'localhost'
     DEFAULT_PORT = 2881  # OceanBase默认端口

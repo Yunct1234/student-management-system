@@ -61,17 +61,54 @@ wsl
 git clone https://github.com/yourusername/student_management_system.git
 cd student_management_system
 
-# 安装OceanBase
+# 安装OceanBase All in One
 cd scripts
 chmod +x *.sh
 ./install_oceanbase.sh
 
-# 部署数据库
+# 部署数据库（选择最小规格或最大规格）
 ./deploy_oceanbase.sh
 
-# 启动服务
-./start_server.sh
+# 管理服务
+./start_server.sh  # 启动服务
+./stop_server.sh   # 停止服务
 ```
+
+### OceanBase All in One 管理命令
+
+```bash
+# 加载环境变量（每次新开终端需要执行）
+source ~/.oceanbase-all-in-one/bin/env.sh
+
+# 查看集群列表
+obd cluster list
+
+# 查看集群详情
+obd cluster display demo
+
+# 启动集群
+obd cluster start demo
+
+# 停止集群
+obd cluster stop demo
+
+# 重启集群
+obd cluster restart demo
+
+# 销毁集群（谨慎使用）
+obd cluster destroy demo
+```
+
+### 连接数据库
+
+```bash
+# 使用mysql客户端连接
+mysql -h 127.0.0.1 -P 2881 -uroot -p -A
+
+# 默认root密码为空，直接回车即可
+# 如果设置了密码，输入对应密码
+```
+
 
 ### 2. 配置本地客户端
 

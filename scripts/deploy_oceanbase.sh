@@ -1,83 +1,83 @@
 #!/bin/bash
-# OceanBase 部署脚本
+# OceanBase All in One 部署脚本
 
 set -e
 
 echo "======================================"
-echo "OceanBase 部署配置"
+echo "OceanBase All in One 部署"
 echo "======================================"
 
-# 配置参数
-ZONE_NAME="zone1"
-CLUSTER_NAME="student_cluster"
-SERVER_IP=$(hostname -I | awk '{print $1}')
-MYSQL_PORT=2881
-RPC_PORT=2882
-DATA_DIR="/data/oceanbase/store"
-LOG_DIR="/data/oceanbase/log"
+# 加载环境变量
+source ~/.oceanbase-all-in-one/bin/env.sh
 
-echo "服务器IP: $SERVER_IP"
-echo "MySQL端口: $MYSQL_PORT"
-echo "RPC端口: $RPC_PORT"
+# 检查是否已有部署
+if obd cluster list | grep -q "demo"; then
+    echo "检测到已有部署，是否销毁重新部署? (y/n)"
+    read -r response
+    if [[ "$response" == "y" ]]; then
+        echo "销毁现有部署..."
+        obd cluster destroy demo -f
+    else
+        echo "使用现有部署"
+        obd cluster display demo
+        exit 0
+    fi
+fi
 
-# 启动Observer
-echo "启动OceanBase Observer..."
-cd /opt/oceanbase
+# 选择部署规格
+echo "请选择部署规格:"
+echo "1. 最小规格部署 (开发测试用，内存需求较小)"
+echo "2. 最大规格部署 (生产环境，需要更多资源)"
+read -p "请选择 [1/2]: " choice
 
-./bin/observer \
-    -i $SERVER_IP \
-    -p $MYSQL_PORT \
-    -P $RPC_PORT \
-    -z $ZONE_NAME \
-    -d $DATA_DIR \
-    -l INFO \
-    -o "memory_limit=8G,system_memory=4G,stack_size=512K,cpu_count=4,cache_wash_threshold=1G,__min_full_resource_pool_memory=268435456,workers_per_cpu_quota=10,schema_history_expire_time=1d,net_thread_count=4,major_freeze_duty_time=Disable,minor_freeze_times=10,enable_separate_sys_clog=0,enable_merge_by_turn=False,datafile_disk_percentage=50,enable_syslog_wf=0,max_syslog_file_count=4" \
-    -c $CLUSTER_NAME \
-    -n $CLUSTER_NAME \
-    -d $DATA_DIR \
-    -l $LOG_DIR &
+if [[ "$choice" == "2" ]]; then
+    echo "执行最大规格部署..."
+    obd pref
+else
+    echo "执行最小规格部署..."
+    obd demo
+fi
 
-sleep 10
-
-# 初始化集群
-echo "初始化集群..."
-mysql -h $SERVER_IP -P $MYSQL_PORT -uroot -e "
-    ALTER SYSTEM BOOTSTRAP ZONE '$ZONE_NAME' SERVER '$SERVER_IP:$RPC_PORT';
-"
-
-echo "等待集群初始化..."
+# 等待服务启动
+echo "等待服务完全启动..."
 sleep 30
 
-# 创建租户
-echo "创建租户..."
-mysql -h $SERVER_IP -P $MYSQL_PORT -uroot@sys -e "
-    CREATE RESOURCE POOL IF NOT EXISTS sys_pool 
-    UNIT = 'sys_unit', 
-    UNIT_NUM = 1;
-    
-    CREATE TENANT IF NOT EXISTS sys 
-    RESOURCE_POOL_LIST = ('sys_pool');
-"
+# 获取连接信息
+echo "获取连接信息..."
+obd cluster display demo
 
-# 创建数据库
+# 创建数据库和导入表结构
 echo "创建student_management数据库..."
-mysql -h $SERVER_IP -P $MYSQL_PORT -uroot@sys -e "
-    CREATE DATABASE IF NOT EXISTS student_management;
+
+# 获取MySQL端口（通常是2881）
+MYSQL_PORT=2881
+MYSQL_HOST="127.0.0.1"
+
+# 连接并创建数据库
+mysql -h $MYSQL_HOST -P $MYSQL_PORT -uroot -p -A -e "
+    CREATE DATABASE IF NOT EXISTS student_management DEFAULT CHARACTER SET utf8mb4;
+    USE student_management;
 "
 
 # 导入数据库结构
 echo "导入数据库结构..."
-mysql -h $SERVER_IP -P $MYSQL_PORT -uroot@sys student_management < ../database/init_db.sql
+mysql -h $MYSQL_HOST -P $MYSQL_PORT -uroot -p -A student_management < ../database/init_db.sql
 
 # 设置远程访问权限
 echo "配置远程访问权限..."
-mysql -h $SERVER_IP -P $MYSQL_PORT -uroot@sys < ../database/setup_remote_access.sql
+mysql -h $MYSQL_HOST -P $MYSQL_PORT -uroot -p -A < ../database/setup_remote_access.sql
 
 echo "======================================"
 echo "OceanBase部署完成!"
 echo "连接信息:"
-echo "  主机: $SERVER_IP"
-echo "  端口: $MYSQL_PORT"
-echo "  用户: root@sys"
+echo "  主机: $MYSQL_HOST"
+echo "  端口: $MYSQL_PORT" 
+echo "  用户: root (初始密码为空)"
 echo "  数据库: student_management"
+echo ""
+echo "管理命令:"
+echo "  查看集群: obd cluster list"
+echo "  查看状态: obd cluster display demo"
+echo "  启动集群: obd cluster start demo"
+echo "  停止集群: obd cluster stop demo"
 echo "======================================"

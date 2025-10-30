@@ -37,9 +37,9 @@ DOWNLOAD_URL="https://obbusiness-private.oss-cn-shanghai.aliyuncs.com/download-c
 sudo mkdir -p /opt/oceanbase
 cd /opt/oceanbase
 
-# 下载安装包
+# 下载安装包（添加 sudo）
 if [ ! -f "oceanbase-ce-${OCEANBASE_VERSION}.rpm" ]; then
-    wget $DOWNLOAD_URL -O oceanbase-ce-${OCEANBASE_VERSION}.rpm
+    sudo wget $DOWNLOAD_URL -O oceanbase-ce-${OCEANBASE_VERSION}.rpm
 fi
 
 # 安装OceanBase

@@ -1,268 +1,195 @@
-# 学生管理系统 - 基于OceanBase
+# OceanBase 学生管理系统
 
-## 项目简介
+基于OceanBase数据库的分布式学生管理系统，支持本地和远程多主机访问。
 
-本项目是一个基于OceanBase国产数据库的学生管理系统，支持多主机远程访问，实现了学生信息管理、课程管理、选课管理等核心功能。
-
-## 系统架构
+## 项目结构
 
 ```
-┌─────────────┐     ┌─────────────┐
-│  本地客户端  │     │  远程客户端  │
-└──────┬──────┘     └──────┬──────┘
-       │                   │
-       │    TCP/IP         │
-       └────────┬──────────┘
-                │
-        ┌───────▼────────┐
-        │   OceanBase    │
-        │   数据库服务器  │
-        └────────────────┘
+student_management_system/
+├── main.py                 # 主程序入口
+├── config/                 # 配置模块
+│   ├── __init__.py
+│   └── db_config.py       # 数据库配置
+├── models/                # 数据模型
+│   ├── __init__.py
+│   ├── student.py         # 学生模型
+│   ├── course.py          # 课程模型
+│   └── enrollment.py      # 选课模型
+├── client/                # 客户端
+│   ├── __init__.py
+│   └── unified_client.py  # 统一客户端
+├── utils/                 # 工具类
+│   ├── __init__.py
+│   └── db_connection.py   # 数据库连接管理
+├── sql/                   # SQL脚本
+│   ├── init_db.sql        # 数据库初始化
+│   └── setup_remote_access.sql  # 远程访问配置
+├── scripts/               # 部署脚本
+│   ├── setup_database.py  # 数据库安装脚本
+│   └── test_connection.py # 连接测试脚本
+├── deploy.sh              # Linux部署脚本
+├── deploy.bat             # Windows部署脚本
+└── README.md              # 项目文档
 ```
-
-## 功能特性
-
-### 核心功能
-- ✅ 学生信息管理（增删改查）
-- ✅ 课程信息管理（增删改查）
-- ✅ 选课管理（选课/退选）
-- ✅ 成绩管理（录入/查询）
-- ✅ 统计分析（各类统计报表）
-
-### 技术特点
-- 🔧 基于OceanBase社区版数据库
-- 🌐 支持多主机远程访问
-- 🔐 完善的权限管理机制
-- 📊 丰富的数据统计功能
-- 🎨 友好的命令行界面
 
 ## 环境要求
 
-### 数据库服务器（WSL/Linux）
-- 操作系统: Ubuntu 20.04+ / CentOS 7+
-- 内存: 8GB以上
-- 磁盘: 20GB以上
-- OceanBase: 4.2.1社区版
-
-### 客户端（Windows/Linux）
-- Python: 3.8+
-- pip: 最新版本
-- 网络: 能够访问数据库服务器
+- Python 3.8+
+- OceanBase Community Edition 4.x
+- pymysql, colorama库
 
 ## 快速开始
 
-### 1. 部署数据库服务器（WSL环境）
+### 1. 安装OceanBase
 
+#### WSL/Linux环境：
 ```bash
-# 进入WSL环境
-wsl
+# 下载并安装OceanBase All-in-One
+wget https://obbusiness-private.oss-cn-shanghai.aliyuncs.com/download-center/opensource/oceanbase-all-in-one/7/x86_64/oceanbase-all-in-one-4.3.3.1-100000242024102216.el7.x86_64.tar.gz
+tar -xzf oceanbase-all-in-one-*.tar.gz
+cd oceanbase-all-in-one/bin/
+./install.sh
 
-# 克隆项目
-git clone https://github.com/yourusername/student_management_system.git
-cd student_management_system
-
-# 安装OceanBase All in One
-cd scripts
-chmod +x *.sh
-./install_oceanbase.sh
-
-# 部署数据库（选择最小规格或最大规格）
-./deploy_oceanbase.sh
-
-# 管理服务
-./start_server.sh  # 启动服务
-./stop_server.sh   # 停止服务
-```
-
-### OceanBase All in One 管理命令
-
-```bash
-# 加载环境变量（每次新开终端需要执行）
-source ~/.oceanbase-all-in-one/bin/env.sh
-
-# 查看集群列表
-obd cluster list
-
-# 查看集群详情
-obd cluster display demo
-
-# 启动集群
+# 初始化集群
+obd cluster deploy demo -c ./example/mini-single-example.yaml
 obd cluster start demo
-
-# 停止集群
-obd cluster stop demo
-
-# 重启集群
-obd cluster restart demo
-
-# 销毁集群（谨慎使用）
-obd cluster destroy demo
 ```
 
-### 连接数据库
+### 2. 部署项目
 
+#### Linux/WSL：
 ```bash
-# 使用mysql客户端连接
-mysql -h 127.0.0.1 -P 2881 -uroot -p -A
-
-# 默认root密码为空，直接回车即可
-# 如果设置了密码，输入对应密码
+chmod +x deploy.sh
+./deploy.sh
 ```
 
-
-### 2. 配置本地客户端
-
-```bash
-# 安装Python依赖
-pip install -r requirements.txt
-
-# 配置数据库连接
-cp .env.example .env
-# 编辑.env文件，设置数据库连接参数
-
-# 运行本地客户端
-python main.py
-# 选择1 - 本地客户端
-```
-
-### 3. 配置远程客户端（Windows）
-
+#### Windows：
 ```batch
-# 在Windows PowerShell中
-cd student_management_system
-
-# 安装依赖
-pip install -r requirements.txt
-
-# 配置远程连接
-copy .env.example .env
-# 编辑.env文件，设置远程数据库IP和凭据
-
-# 运行远程客户端
-python main.py
-# 选择2 - 远程客户端
+deploy.bat
 ```
 
-## 数据库设计
+### 3. 运行系统
 
-### 学生信息表 (students)
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| student_id | VARCHAR(20) | 学号（主键） |
-| name | VARCHAR(50) | 姓名 |
-| gender | ENUM | 性别 |
-| age | INT | 年龄 |
-| major | VARCHAR(100) | 专业 |
-| class_name | VARCHAR(50) | 班级 |
-| phone | VARCHAR(20) | 电话 |
-| email | VARCHAR(100) | 邮箱 |
-| enrollment_date | DATE | 入学日期 |
-| status | ENUM | 状态 |
-
-### 课程信息表 (courses)
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| course_id | VARCHAR(20) | 课程编号（主键） |
-| course_name | VARCHAR(100) | 课程名称 |
-| credits | DECIMAL(3,1) | 学分 |
-| teacher | VARCHAR(50) | 教师 |
-| department | VARCHAR(100) | 开课学院 |
-| semester | VARCHAR(20) | 学期 |
-| course_type | ENUM | 课程类型 |
-| max_students | INT | 最大人数 |
-| classroom | VARCHAR(50) | 教室 |
-| schedule | VARCHAR(100) | 上课时间 |
-
-### 选课表 (enrollments)
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| enrollment_id | INT | 选课ID（主键） |
-| student_id | VARCHAR(20) | 学号（外键） |
-| course_id | VARCHAR(20) | 课程编号（外键） |
-| semester | VARCHAR(20) | 学期 |
-| score | DECIMAL(5,2) | 成绩 |
-| grade | VARCHAR(10) | 等级 |
-| status | ENUM | 选课状态 |
-
-## 用户权限配置
-
-### 管理员用户
-- 用户名: admin@localhost
-- 权限: 全部权限
-- 说明: 本地管理员账户
-
-### 远程用户
-- 用户名: remote_user@%
-- 权限: SELECT, INSERT, UPDATE, DELETE
-- 说明: 远程客户端访问账户
-
-### 只读用户
-- 用户名: readonly_user@%
-- 权限: SELECT
-- 说明: 只读访问账户
-
-## 安全配置
-
-### 网络安全
-1. 配置防火墙规则，仅开放必要端口（2881）
-2. 使用强密码策略
-3. 定期更新密码
-
-### 数据安全
-1. 定期备份数据
-2. 使用事务保证数据一致性
-3. 实施访问日志记录
-
-## 测试
-
-运行测试套件：
 ```bash
-python -m pytest tests/
-# 或
-python tests/test_operations.py
+python main.py
 ```
 
-## 常见问题
+## 配置说明
 
-### Q1: 无法连接到OceanBase
-- 检查OceanBase服务是否启动
-- 检查防火墙设置
-- 验证连接参数是否正确
+### 本地连接配置
+默认配置在 `config/db_config.py`：
+- Host: 127.0.0.1
+- Port: 2881
+- User: root
+- Password: (空)
 
-### Q2: 远程访问被拒绝
-- 确认远程用户权限已配置
-- 检查网络连接
-- 验证用户名和密码
+### 远程连接配置
+支持三种用户角色：
+- `remote_user`: 普通用户 (密码: Remote@123)
+- `readonly_user`: 只读用户 (密码: ReadOnly@123)
+- `admin`: 管理员 (密码: Admin@123)
 
-### Q3: 中文显示乱码
-- 设置数据库字符集为utf8mb4
-- 客户端连接时指定charset='utf8mb4'
+### 配置远程访问
 
-## 项目结构
-```
-student_management_system/
-├── config/              # 配置文件
-├── database/            # 数据库脚本
-├── models/              # 数据模型
-├── utils/               # 工具类
-├── client/              # 客户端程序
-├── tests/               # 测试代码
-├── scripts/             # 部署脚本
-├── requirements.txt     # Python依赖
-├── .env                 # 环境变量
-├── main.py             # 主程序入口
-└── README.md           # 说明文档
+1. **服务器端（WSL/Linux）**：
+```bash
+# 修改OceanBase监听地址
+mysql -h127.0.0.1 -P2881 -uroot
+ALTER SYSTEM SET observer_tcp_invited_nodes='%';
+
+# 配置防火墙
+sudo ufw allow 2881/tcp
 ```
 
-## 许可证
+2. **客户端**：
+运行程序选择"远程连接"模式，输入服务器IP地址。
 
-MIT License
+## 主要功能
 
-## 作者
+1. **学生管理**
+   - 增删改查学生信息
+   - 批量导入/导出
 
-Your Name - [your.email@example.com](mailto:your.email@example.com)
+2. **课程管理**
+   - 课程信息维护
+   - 课程容量管理
 
-## 致谢
+3. **选课管理**
+   - 学生选课/退课
+   - 选课名单查询
 
-- OceanBase团队提供的优秀国产数据库
-- Python社区的开源贡献者
+4. **成绩管理**
+   - 成绩录入
+   - 成绩统计分析
+
+5. **统计查询**
+   - 多维度数据统计
+   - 报表生成
+
+## 故障排除
+
+### 连接失败
+1. 检查OceanBase服务状态：`obd cluster list`
+2. 验证端口开放：`netstat -an | grep 2881`
+3. 检查防火墙设置
+
+### 权限问题
+1. 确认用户权限：`SHOW GRANTS FOR 'user'@'host';`
+2. 重新授权：运行 `sql/setup_remote_access.sql`
+
+## 开发团队
+
+- 项目负责人：[您的名字]
+- 开发环境：Windows 11 + WSL2
+- 数据库：OceanBase Community Edition 4.3.3
+
+
+
+## 7. 项目部署步骤
+
+### **在主机A（WSL环境）上部署：**
+
+1. **安装OceanBase**
+```bash
+# 在WSL中执行
+cd ~
+wget https://obbusiness-private.oss-cn-shanghai.aliyuncs.com/download-center/opensource/oceanbase-all-in-one/7/x86_64/oceanbase-all-in-one-4.3.3.1-100000242024102216.el7.x86_64.tar.gz
+tar -xzf oceanbase-all-in-one-*.tar.gz
+cd oceanbase-all-in-one/bin/
+sudo ./install.sh
+
+# 初始化demo集群
+obd cluster deploy demo -c ./example/mini-single-example.yaml
+obd cluster start demo
+```
+
+2. **部署项目**
+```bash
+# 克隆或复制项目文件
+cd ~/student_management_system
+chmod +x deploy.sh
+./deploy.sh
+```
+
+3. **配置远程访问**
+```bash
+# 获取WSL的IP地址
+ip addr show eth0
+
+# 配置Windows防火墙（在Windows PowerShell管理员模式下）
+New-NetFirewallRule -DisplayName "OceanBase" -Direction Inbound -Protocol TCP -LocalPort 2881 -Action Allow
+```
+
+### **在主机B（Windows客户端）上连接：**
+
+1. **安装Python依赖**
+```batch
+pip install pymysql colorama
+```
+
+2. **运行客户端**
+```batch
+python main.py
+# 选择"2. 远程连接"
+# 输入主机A的IP地址
+```

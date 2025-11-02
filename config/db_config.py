@@ -13,9 +13,9 @@ class DBConfig:
         return {
             'host': '127.0.0.1',
             'port': 2881,
-            'user': 'root',
-            'password': '',  # OceanBase All in One 默认无密码
-            'database': 'student_management',
+            'user': 'root@sys',  # 修改：添加@sys
+            'password': 'uBSxMCBdTOR4D24mBHP1',  # 修改：使用实际密码
+            'database': 'oceanbase',  # 修改：先连接到oceanbase数据库
             'charset': 'utf8mb4'
         }
     
@@ -28,6 +28,6 @@ class DBConfig:
             'port': 2881,
             'user': user,
             'password': password,
-            'database': 'student_management',
+            'database': 'oceanbase',
             'charset': 'utf8mb4'
         }

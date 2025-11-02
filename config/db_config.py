@@ -14,7 +14,7 @@ class DBConfig:
             'host': '127.0.0.1',
             'port': 2881,
             'user': 'root@sys',  # 修改：添加@sys
-            'password': 'uBSxMCBdTOR4D24mBHP1',  # 修改：使用实际密码
+            'password': 'u',  # 修改：使用实际密码
             'database': 'oceanbase',  # 修改：先连接到oceanbase数据库
             'charset': 'utf8mb4'
         }

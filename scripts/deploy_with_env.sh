@@ -14,6 +14,7 @@ source ~/.oceanbase-all-in-one/bin/env.sh
 echo "清理旧部署..."
 obd cluster destroy demo -f 2>/dev/null || true
 
+obd demo
 # 2. 使用obd自动配置系统参数
 echo "自动配置系统参数..."
 obd cluster init4env demo
@@ -24,9 +25,6 @@ ulimit -n 65535
 ulimit -c unlimited
 ulimit -s unlimited
 
-# 4. 执行部署
-echo "开始部署OceanBase..."
-obd demo -c mini
 
 # 5. 检查状态
 echo "检查部署状态..."

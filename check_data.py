@@ -6,7 +6,7 @@ config = {
     'host': '127.0.0.1',
     'port': 2881,
     'user': 'root@sys',
-    'password': 'uBSxMCBdTOR4D24mBHP1',
+    'password': 'u',
     'database': 'student_management',
     'charset': 'utf8mb4'
 }

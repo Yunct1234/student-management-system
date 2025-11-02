@@ -27,17 +27,30 @@ class DatabaseConnection:
         """建立数据库连接"""
         try:
             if not self.connection or not self.connection.open:
+                # 特殊处理student_management数据库
+                config = self.config.copy()
+                if config.get('database') == 'student_management':
+                    # 先连接到oceanbase，再切换数据库
+                    config['database'] = 'oceanbase'
+                    
                 self.connection = pymysql.connect(
-                    **self.config,
+                    **config,
                     cursorclass=DictCursor,
                     autocommit=False
                 )
+                
+                # 如果目标是student_management，切换到该数据库
+                if self.config.get('database') == 'student_management':
+                    cursor = self.connection.cursor()
+                    cursor.execute("USE student_management")
+                    cursor.close()
+                    
                 logger.info(f"成功连接到数据库: {self.config['host']}:{self.config['port']}")
             return self.connection
         except pymysql.Error as e:
             logger.error(f"数据库连接失败: {e}")
             raise
-            
+                
     def disconnect(self):
         """关闭数据库连接"""
         if self.connection:

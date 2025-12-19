@@ -5,7 +5,7 @@
 import sys
 import os
 from colorama import init, Fore, Style
-from client.unified_client import UnifiedClient
+from client.role_based_client import UnifiedClient
 from config.db_config import DBConfig
 
 # 初始化colorama，支持Windows终端颜色

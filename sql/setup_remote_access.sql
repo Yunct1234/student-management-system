@@ -1,3 +1,4 @@
+-- setup_remote_access.sql
 -- 配置远程访问权限
 -- 适用于 OceanBase All in One 部署
 

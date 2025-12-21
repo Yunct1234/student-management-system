@@ -1,3 +1,4 @@
+-- init_db.sql
 -- 创建学生管理数据库
 CREATE DATABASE IF NOT EXISTS student_management DEFAULT CHARACTER SET utf8mb4;
 
@@ -86,3 +87,63 @@ INSERT INTO enrollments (student_id, course_id, semester, score, grade, status) 
 ('2021002', 'CS101', '2024-1', 78.0, '中等', '正常'),
 ('2021002', 'CS103', '2024-1', 88.5, '良好', '正常'),
 ('2021003', 'CS102', '2024-1', 95.0, '优秀', '正常');
+
+
+
+-- ============================================
+-- 用户权限相关表（追加到init_db.sql末尾）
+-- ============================================
+
+-- 创建系统用户表
+DROP TABLE IF EXISTS system_users;
+CREATE TABLE system_users (
+    user_id INT PRIMARY KEY AUTO_INCREMENT COMMENT '用户ID',
+    username VARCHAR(50) NOT NULL UNIQUE COMMENT '用户名',
+    password VARCHAR(255) NOT NULL COMMENT '密码（MD5加密）',
+    role ENUM('admin', 'teacher', 'student') NOT NULL COMMENT '角色',
+    related_id VARCHAR(20) COMMENT '关联ID（学号或教师工号）',
+    real_name VARCHAR(50) COMMENT '真实姓名',
+    is_active BOOLEAN DEFAULT TRUE COMMENT '是否激活',
+    last_login TIMESTAMP NULL COMMENT '最后登录时间',
+    login_count INT DEFAULT 0 COMMENT '登录次数',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    INDEX idx_username (username),
+    INDEX idx_role (role),
+    INDEX idx_related_id (related_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统用户表';
+
+-- 创建操作日志表
+DROP TABLE IF EXISTS operation_logs;
+CREATE TABLE operation_logs (
+    log_id INT PRIMARY KEY AUTO_INCREMENT COMMENT '日志ID',
+    user_id INT COMMENT '用户ID',
+    username VARCHAR(50) COMMENT '用户名',
+    role VARCHAR(20) COMMENT '角色',
+    operation VARCHAR(200) NOT NULL COMMENT '操作描述',
+    table_name VARCHAR(50) COMMENT '操作的表名',
+    record_id VARCHAR(50) COMMENT '操作的记录ID',
+    ip_address VARCHAR(50) COMMENT 'IP地址',
+    operation_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '操作时间',
+    INDEX idx_user_id (user_id),
+    INDEX idx_operation_time (operation_time),
+    INDEX idx_table_name (table_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='操作日志表';
+
+-- 插入默认用户（密码都是MD5加密后的值）
+-- admin123 -> 0192023a7bbd73250516f069df18b500
+-- teacher123 -> 5a6d52aabe514ad622ed5e2f040cf95b  
+-- student123 -> 4befe8f54d642d8164ccf8c6e614a0e3
+
+INSERT INTO system_users (username, password, role, related_id, real_name, is_active) VALUES
+('admin', '0192023a7bbd73250516f069df18b500', 'admin', NULL, '系统管理员', TRUE),
+('teacher1', '5a6d52aabe514ad622ed5e2f040cf95b', 'teacher', 'T001', '王教授', TRUE),
+('teacher2', '5a6d52aabe514ad622ed5e2f040cf95b', 'teacher', 'T002', '李教授', TRUE),
+('student1', '4befe8f54d642d8164ccf8c6e614a0e3', 'student', '2021001', '张三', TRUE),
+('student2', '4befe8f54d642d8164ccf8c6e614a0e3', 'student', '2021002', '李四', TRUE),
+('student3', '4befe8f54d642d8164ccf8c6e614a0e3', 'student', '2021003', '王五', TRUE);
+
+-- 更新课程表，添加teacher_id字段关联
+ALTER TABLE courses ADD COLUMN teacher_id VARCHAR(20) COMMENT '教师工号';
+UPDATE courses SET teacher_id = 'T001' WHERE teacher = '王教授';
+UPDATE courses SET teacher_id = 'T002' WHERE teacher = '李教授';

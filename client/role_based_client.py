@@ -1367,16 +1367,15 @@ class UnifiedClient:
 # ==================== 主入口 ====================
 
 def main():
-    """程序主入口"""
-    # 数据库配置
     db_config = {
-        'host': '192.168.1.91',
-        'port': 2883,
+        'host': '127.0.0.1',
+        'port': 2881,
         'user': 'root@test',
         'password': '',
         'database': 'student_management',
         'charset': 'utf8mb4'
     }
+
     
     print(f"\n{Fore.CYAN}{'='*60}")
     print(f"{Fore.CYAN}{'学生信息管理系统 v2.0':^56}")

@@ -347,12 +347,13 @@ def check_database(db_config):
 # 独立运行时
 if __name__ == '__main__':
     config = {
-        'host': '192.168.1.91',
-        'port': 2883,
+        'host': '127.0.0.1',
+        'port': 2881,
         'user': 'root@test',
         'password': '',
         'database': 'student_management',
         'charset': 'utf8mb4'
     }
+
     
     init_database(config)

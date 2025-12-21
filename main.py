@@ -15,16 +15,16 @@ from utils.db_init import check_database, init_database
 
 def main():
     """主函数"""
-    # 数据库配置
+    # 数据库配置 - 修改为正确的本地Docker配置
     db_config = {
-        'host': '192.168.1.91',
-        'port': 2883,
-        'user': 'root@test',
-        'password': '',
+        'host': '127.0.0.1',          # 本地Docker用127.0.0.1
+        'port': 2881,                  # Docker映射端口是2881
+        'user': 'root@test',           # OceanBase用户名
+        'password': '',                # 默认空密码
         'database': 'student_management',
         'charset': 'utf8mb4'
     }
-    
+
     print("\n" + "=" * 50)
     print("学生信息管理系统 v2.0".center(46))
     print("=" * 50)

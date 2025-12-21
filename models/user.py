@@ -23,21 +23,15 @@ class User:
     def login(self, username: str, password: str) -> Optional[Dict[str, Any]]:
         """
         用户登录验证
-        
-        Args:
-            username: 用户名
-            password: 密码（明文）
-            
-        Returns:
-            用户信息字典，失败返回None
         """
         password_hash = self._encrypt_password(password)
         
+        # 修改：password -> password_hash
         query = """
-            SELECT user_id, username, password, role, related_id, 
-                   real_name, is_active, last_login
+            SELECT user_id, username, password_hash as password, role, related_id, 
+                real_name, is_active, last_login
             FROM system_users 
-            WHERE username = %s AND password = %s
+            WHERE username = %s AND password_hash = %s
         """
         
         try:
@@ -45,9 +39,7 @@ class User:
             
             if results and results[0]['is_active']:
                 self.current_user = results[0]
-                # 更新最后登录时间
                 self._update_last_login(results[0]['user_id'])
-                # 记录登录日志
                 self.log_operation("用户登录", "system_users", str(results[0]['user_id']))
                 return results[0]
             elif results and not results[0]['is_active']:
@@ -59,6 +51,8 @@ class User:
         except Exception as e:
             print(f"登录失败: {e}")
             return None
+
+
             
     def _update_last_login(self, user_id: int):
         """更新最后登录时间"""
@@ -116,15 +110,14 @@ class User:
         if not self.current_user:
             return False
             
-        # 验证旧密码
         old_hash = self._encrypt_password(old_password)
         if old_hash != self.current_user['password']:
             print("原密码错误")
             return False
             
-        # 更新新密码
         new_hash = self._encrypt_password(new_password)
-        query = "UPDATE system_users SET password = %s WHERE user_id = %s"
+        # 修改：password -> password_hash
+        query = "UPDATE system_users SET password_hash = %s WHERE user_id = %s"
         
         try:
             result = self.db.execute_update(query, (new_hash, self.current_user['user_id']))
@@ -135,6 +128,7 @@ class User:
         except Exception as e:
             print(f"修改密码失败: {e}")
             return False
+
             
     def create_user(self, user_data: Dict[str, Any]) -> bool:
         """创建用户（仅管理员）"""
@@ -144,9 +138,10 @@ class User:
             
         password_hash = self._encrypt_password(user_data.get('password', '123456'))
         
+        # 修改：password -> password_hash
         query = """
             INSERT INTO system_users 
-            (username, password, role, related_id, real_name, is_active)
+            (username, password_hash, role, related_id, real_name, is_active)
             VALUES (%s, %s, %s, %s, %s, %s)
         """
         
@@ -167,6 +162,8 @@ class User:
         except Exception as e:
             print(f"创建用户失败: {e}")
             return False
+
+
             
     def get_all_users(self) -> List[Dict[str, Any]]:
         """获取所有用户（仅管理员）"""
@@ -213,7 +210,8 @@ class User:
             return False
             
         password_hash = self._encrypt_password(new_password)
-        query = "UPDATE system_users SET password = %s WHERE user_id = %s"
+        # 修改：password -> password_hash
+        query = "UPDATE system_users SET password_hash = %s WHERE user_id = %s"
         
         try:
             result = self.db.execute_update(query, (password_hash, user_id))
@@ -224,6 +222,8 @@ class User:
         except Exception as e:
             print(f"重置密码失败: {e}")
             return False
+
+
             
     def get_operation_logs(self, limit: int = 100, 
                           filters: Dict[str, Any] = None) -> List[Dict[str, Any]]:

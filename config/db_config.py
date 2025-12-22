@@ -14,21 +14,21 @@ class DBConfig:
         return {
             'host': '127.0.0.1',
             'port': 2881,
-            'user': 'root@sys',  # 修改：添加@sys
-            'password': 'u',  # 修改：使用实际密码
-            'database': 'oceanbase',  # 修改：先连接到oceanbase数据库
+            'user': 'root@test',           # 修改：使用test租户
+            'password': '',                 # 修改：无密码
+            'database': 'student_management',  # 修改：使用你的数据库
             'charset': 'utf8mb4'
         }
     
     @staticmethod
-    def get_remote_config(host: str, user: str = 'remote_user', 
-                         password: str = 'Remote@123') -> Dict[str, Any]:
+    def get_remote_config(host: str, user: str = 'root@test', 
+                         password: str = '') -> Dict[str, Any]:
         """获取远程连接配置"""
         return {
             'host': host,
             'port': 2881,
             'user': user,
             'password': password,
-            'database': 'oceanbase',
+            'database': 'student_management',
             'charset': 'utf8mb4'
         }

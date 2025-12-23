@@ -65,10 +65,13 @@ class Enrollment:
             
     def get_student_courses(self, student_id: str) -> List[Dict[str, Any]]:
         """获取学生选课列表"""
+        # 修复：通过JOIN teachers表获取教师姓名
         query = """
-            SELECT e.*, c.course_name, c.credits, c.teacher, c.course_type
+            SELECT e.*, c.course_name, c.credits, c.course_type,
+                   COALESCE(t.name, '-') as teacher
             FROM enrollments e
             JOIN courses c ON e.course_id = c.course_id
+            LEFT JOIN teachers t ON c.teacher_id = t.teacher_id
             WHERE e.student_id = %s
             ORDER BY e.semester DESC, c.course_id
         """

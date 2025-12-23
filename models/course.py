@@ -16,22 +16,24 @@ class Course:
         """创建课程"""
         query = """
             INSERT INTO courses (
-                course_id, course_name, credits, teacher, department,
-                semester, course_type, max_students, classroom, schedule
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                course_id, course_name, credits, hours, teacher_id, department,
+                semester, course_type, max_students, classroom, schedule, description
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         try:
             params = (
                 course_data['course_id'],
                 course_data['course_name'],
                 course_data.get('credits', 2.0),
-                course_data.get('teacher', ''),
+                course_data.get('hours', 32),
+                course_data.get('teacher_id', None),
                 course_data.get('department', ''),
                 course_data.get('semester', ''),
                 course_data.get('course_type', '选修'),
-                course_data.get('max_students', 50),
+                course_data.get('max_students', 100),
                 course_data.get('classroom', ''),
-                course_data.get('schedule', '')
+                course_data.get('schedule', ''),
+                course_data.get('description', '')
             )
             result = self.db.execute_update(query, params)
             return result > 0
@@ -41,7 +43,12 @@ class Course:
             
     def get_by_id(self, course_id: str) -> Optional[Dict[str, Any]]:
         """根据课程编号获取课程"""
-        query = "SELECT * FROM courses WHERE course_id = %s"
+        query = """
+            SELECT c.*, COALESCE(t.name, '-') as teacher
+            FROM courses c
+            LEFT JOIN teachers t ON c.teacher_id = t.teacher_id
+            WHERE c.course_id = %s
+        """
         try:
             results = self.db.execute_query(query, (course_id,))
             return results[0] if results else None
@@ -51,7 +58,12 @@ class Course:
             
     def get_all(self) -> List[Dict[str, Any]]:
         """获取所有课程"""
-        query = "SELECT * FROM courses ORDER BY course_id"
+        query = """
+            SELECT c.*, COALESCE(t.name, '-') as teacher
+            FROM courses c
+            LEFT JOIN teachers t ON c.teacher_id = t.teacher_id
+            ORDER BY c.course_id
+        """
         try:
             return self.db.execute_query(query)
         except Exception as e:
@@ -98,11 +110,13 @@ class Course:
     def search(self, keyword: str) -> List[Dict[str, Any]]:
         """搜索课程"""
         query = """
-            SELECT * FROM courses 
-            WHERE course_id LIKE %s 
-               OR course_name LIKE %s 
-               OR teacher LIKE %s
-            ORDER BY course_id
+            SELECT c.*, COALESCE(t.name, '-') as teacher
+            FROM courses c
+            LEFT JOIN teachers t ON c.teacher_id = t.teacher_id
+            WHERE c.course_id LIKE %s 
+               OR c.course_name LIKE %s 
+               OR t.name LIKE %s
+            ORDER BY c.course_id
         """
         keyword_pattern = f"%{keyword}%"
         params = (keyword_pattern, keyword_pattern, keyword_pattern)
@@ -116,11 +130,12 @@ class Course:
     def get_available_courses(self, semester: str) -> List[Dict[str, Any]]:
         """获取可选课程"""
         query = """
-            SELECT c.*, 
+            SELECT c.*, COALESCE(t.name, '-') as teacher,
                    (SELECT COUNT(*) FROM enrollments e 
                     WHERE e.course_id = c.course_id 
                       AND e.semester = %s) as enrolled_count
             FROM courses c
+            LEFT JOIN teachers t ON c.teacher_id = t.teacher_id
             WHERE c.semester = %s
               AND c.max_students > (
                   SELECT COUNT(*) FROM enrollments e 
@@ -134,6 +149,21 @@ class Course:
             return self.db.execute_query(query, (semester, semester, semester))
         except Exception as e:
             print(f"查询可选课程失败: {e}")
+            return []
+    
+    def get_by_teacher(self, teacher_id: str) -> List[Dict[str, Any]]:
+        """根据教师ID获取其授课课程"""
+        query = """
+            SELECT c.*, COALESCE(t.name, '-') as teacher
+            FROM courses c
+            LEFT JOIN teachers t ON c.teacher_id = t.teacher_id
+            WHERE c.teacher_id = %s
+            ORDER BY c.course_id
+        """
+        try:
+            return self.db.execute_query(query, (teacher_id,))
+        except Exception as e:
+            print(f"查询教师课程失败: {e}")
             return []
             
     def get_statistics(self) -> Dict[str, Any]:

@@ -364,7 +364,7 @@ class UnifiedClient:
         print(f"{Fore.YELLOW}输入成绩（直接回车跳过，输入q退出）")
         
         for s in students:
-            score_input = input(f"{s['student_id']} {s['    name']}: {Style.RESET_ALL}").strip()
+            score_input = input(f"{s['student_id']} {s['name']}: {Style.RESET_ALL}").strip()
             
             if score_input.lower() == 'q':
                 break

@@ -9,7 +9,7 @@ from client.role_based_client import UnifiedClient
 def main():
     # 远程连接配置 - 修改为服务器的IP
     remote_config = {
-        'host': '192.168.31.35',  # 服务器Windows的局域网IP
+        'host': '172.21.50.57',  # 服务器Windows的局域网IP
         'port': 2881,
         'user': 'remote_user@test',  # 或 remote_user@sys
         'password': 'Remote@123',
